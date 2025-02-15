@@ -51,7 +51,7 @@ public class UserHomePage {
         	firstVisit=false;}
 
             String option = scanner.nextLine();
-
+	//If the user chooses to ask a question they will enter the question itself along with a further description
             if (option.equals("1")) {
                 // Asking a question
                 System.out.println("Please enter your question:");
@@ -60,20 +60,20 @@ public class UserHomePage {
                 System.out.println("Please enter a description for your question:");
                 String description = scanner.nextLine();
 
-                // Generate question ID using timestamp
-               
+                
+               //Makes question with these parameters
                 Question newQuestion = new Question(user.getUserName(), questionText, description, String.valueOf(val));
                 val++;
 
-                // Write question to file or database
+                // It will be stored to the .txt file
                 Questions.writeQuestion(newQuestion);
 
-                // Update the UI thread to show the new question added
+                //
                 Platform.runLater(() -> {
                     layout.getChildren().clear();
                     layout.getChildren().add(new Label("New question added: " + questionText));
                 });
-
+	//If they want to view all the questions it will load the.txt file and output it as a Questions Array List
             } else if (option.equals("2")) {
                 // View all questions
                 if (!preload) {
@@ -90,7 +90,7 @@ public class UserHomePage {
 				 
 
                 Questions.displayQuestions(); 
-
+	//If they want to answer a question they will type in the number of the question they want to answer along with the answer. 
             } else if (option.equals("3")) {
 				
 				  System.out.println("Please enter the code of the question you wish to answer: "); 
@@ -100,7 +100,7 @@ public class UserHomePage {
 				  System.out.println("Please enter the response of your answer: ");
 				  String answerInfo=scanner.nextLine();
 				  Answer newAnswer =  new Answer(qNum, user.getUserName(), answerInfo);
-				 
+				 //It will write to the answer file .txt
 				  Answers.writeAnswers(newAnswer); Platform.runLater(() -> {
 				  layout.getChildren().clear(); layout.getChildren().add(new Label("New answer added: " + answerInfo));
 				  
