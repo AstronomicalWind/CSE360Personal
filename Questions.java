@@ -15,7 +15,7 @@ public class Questions {
 	public static String FILE_PATH_OUTPUT="questions.txt";
     private static ArrayList<Question> questionList = new ArrayList<>();
 
-	
+	//this writes the question to the text file (IO requires exceptions)
 	public static void writeQuestion(Question question) {
 		try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH_OUTPUT, true))){
 			String questionData = question.number + "\n"+ question.id + "\n" + question.question + "\n" + question.description + "\n"+ question.answered + "\n"+ question.resolved + "\n";
@@ -25,7 +25,7 @@ public class Questions {
 			e.printStackTrace();
 		}
 	}
-		
+		//this reads the file and loads the questions from it.
 		 public static void loadQuestionsFromFile() {
 		        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH_OUTPUT))) {
 		            String line;
