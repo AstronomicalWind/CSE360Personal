@@ -11,7 +11,7 @@ public class Answers {
 
 	public static String FILE_PATH_OUTPUT = "answers.txt";
 	private static ArrayList<Question> answerList = new ArrayList<>();
-
+	//writes the answer to the text file
 	public static void writeAnswers(Answer answer) {
 		try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH_OUTPUT, true))){
 			String answerData =  answer.number + "\n"+ answer.id + "\n" + answer.answer +"\n";
@@ -21,7 +21,7 @@ public class Answers {
 			e.printStackTrace();
 		}
 	}
-
+//	ignore OLD CODE
 	/*
 	 * public static void loadQuestionsFromFile() { try (BufferedReader reader = new
 	 * BufferedReader(new FileReader(FILE_PATH_OUTPUT))) { String line; while ((line
