@@ -1,0 +1,130 @@
+package application;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
+
+class QuestionsManagerTest {
+
+    private QuestionsManager questionsManager;
+    private User adminUser;
+    private User regularUser;
+
+    @BeforeEach
+    void setUp() {
+        // Initialize the QuestionsManager instance
+        questionsManager = QuestionsManager.getInstance();
+
+        // Create test users
+        adminUser = new User("Joe Sims", "password123","admin");
+        regularUser = new User("Arnav Limaye", "pIZZaHut?4", "user");
+
+        // Clear any existing questions or answers before each test
+        // This avoids state carry-over between tests
+        questionsManager.getQuestions().clear();
+        questionsManager.getAnswersForQuestion(0).clear();
+    }
+
+    @Test
+    void testAddQuestionByAdmin() {
+        questionsManager.addQuestion("Sample Title", "This is a sample question.", "admin");
+
+        List<Question> questions = questionsManager.getQuestions();
+        assertEquals(1, questions.size());
+        assertEquals("Sample Title", questions.get(0).getTitle());
+        assertEquals("This is a sample question.", questions.get(0).getContent());
+        assertEquals("admin", questions.get(0).getOwner());
+    }
+
+    @Test
+    void testAddQuestionWithEmptyTitle() {
+        questionsManager.addQuestion("", "Content without a title", "admin");
+
+        List<Question> questions = questionsManager.getQuestions();
+        assertEquals(0, questions.size());  // No question should be added
+    }
+
+    @Test
+    void testAddFollowUpQuestion() {
+        questionsManager.addQuestion("Main Question", "Main question content", "admin");
+
+        Question mainQuestion = questionsManager.getQuestions().get(0);
+        questionsManager.addFollowUpQuestion(mainQuestion.getId(), "Follow-up", "Follow-up question content", "admin");
+
+        List<Question> questions = questionsManager.getQuestions();
+        assertEquals(2, questions.size());
+        assertTrue(questions.get(1).getTitle().contains("Follow-up"));
+        assertEquals("Follow-up question content", questions.get(1).getContent());
+    }
+
+    @Test
+    void testDeleteQuestionByAdmin() {
+        questionsManager.addQuestion("Sample Question", "Sample Content", "admin");
+        Question question = questionsManager.getQuestions().get(0);
+        int questionId = question.getId();
+
+        questionsManager.deleteQuestion(questionId);
+
+        List<Question> questions = questionsManager.getQuestions();
+        assertEquals(0, questions.size());  // Question should be deleted
+    }
+
+    @Test
+    void testDeleteQuestionByUser() {
+        questionsManager.addQuestion("Sample Question", "Sample Content", "admin");
+        Question question = questionsManager.getQuestions().get(0);
+        int questionId = question.getId();
+
+        // Try deleting the question as a regular user
+        boolean result = questionsManager.deleteQuestion(questionId, regularUser);
+
+        assertFalse(result);  // Regular user should not be able to delete
+    }
+
+    @Test
+    void testDeleteOwnQuestion() {
+        questionsManager.addQuestion("User's Question", "User's Content", "user1");
+        Question question = questionsManager.getQuestions().get(0);
+        int questionId = question.getId();
+
+        boolean result = questionsManager.deleteQuestion(questionId, regularUser);
+        assertTrue(result);  // User should be able to delete their own question
+    }
+
+    @Test
+    void testUpdateQuestionTitle() {
+        questionsManager.addQuestion("Old Title", "Content", "admin");
+        Question question = questionsManager.getQuestions().get(0);
+        int questionId = question.getId();
+
+        questionsManager.updateQuestionTitle(questionId, "New Title");
+
+        assertEquals("New Title", questionsManager.getQuestions().get(0).getTitle());
+    }
+
+    @Test
+    void testAddAnswer() {
+        questionsManager.addQuestion("Question with an answer", "Content of question", "admin");
+        Question question = questionsManager.getQuestions().get(0);
+        int questionId = question.getId();
+
+        questionsManager.addAnswer(questionId, "This is an answer.");
+
+        List<Answer> answers = questionsManager.getAnswersForQuestion(questionId);
+        assertEquals(1, answers.size());
+        assertEquals("This is an answer.", answers.get(0).getAnswerText());
+    }
+
+	/*
+	 * @Test void testSearchQuestions() { questionsManager.addQuestion("Test Title",
+	 * "Test Content", "admin"); questionsManager.addQuestion("Another Title",
+	 * "Another Content", "admin");
+	 * 
+	 * List<Question> results = questionsManager.searchQuestions("Test");
+	 * 
+	 * assertEquals(1, results.size());
+	 * assertTrue(results.get(0).getTitle().contains("Test")); }
+	 */
+}
