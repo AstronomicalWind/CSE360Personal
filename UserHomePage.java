@@ -1,132 +1,111 @@
 package application;
 
-import java.util.Scanner;
-import javafx.application.Platform;
+import databasePart1.DatabaseHelper;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import java.util.*;
+
 /**
- * This page displays a simple welcome message for the user.
+ * UserHomePage displays the home screen for a regular user.
  */
 public class UserHomePage {
-	Random generator = new Random();
-	int val= generator.nextInt(1000);
-	int max=10000;
-	int min=0;
-    private User user;
-    private boolean preload = false; 
-    private boolean firstVisit=true;
+    private QuestionsManager questionsManager = QuestionsManager.getInstance();
+    private DatabaseHelper databaseHelper = new DatabaseHelper();
 
-    public UserHomePage(User user) {
-        this.user = user;
+    private User currentUser;
+
+    // Overload or store user in constructor
+    public UserHomePage(User currentUser) {
+        this.currentUser = currentUser;
+    }
+
+    // For backward compatibility, we keep a default constructor
+    public UserHomePage() {
+        this.currentUser = new User("Guest", "", "user");
     }
 
     public void show(Stage primaryStage) {
-        VBox layout = new VBox();
+        VBox layout = new VBox(10);
         layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
 
-        Label userLabel = new Label("Hello, " + user.getUserName() + "!");
-        userLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-        layout.getChildren().add(userLabel);
+        Label welcomeLabel = new Label("Welcome, " + currentUser.getUserName() + "!");
+        welcomeLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
 
-        Scene userScene = new Scene(layout, 800, 400);
-        primaryStage.setScene(userScene);
-        primaryStage.setTitle("User Page");
-        primaryStage.show();
+        // Ask Question
+        Button askQuestionButton = new Button("Ask a Question");
+        askQuestionButton.setOnAction(event -> {
+            System.out.println("Navigating to AskQuestionPage...");
+            // We'll pass the user to AskQuestionPage so we can store the owner
+            new AskQuestionPage(currentUser).show(primaryStage);
+        });
 
-        new Thread(() -> handleUserInput(layout)).start();
-    }
-
-    private void handleUserInput(VBox layout) {
-        Scanner scanner = new Scanner(System.in);
-
-        boolean qAndAOn = true;
+        // My Questions - for deleting or viewing user’s own questions
+        Button myQuestionsButton = new Button("My Questions");
+        myQuestionsButton.setOnAction(event -> {
+            new MyQuestionsPage(currentUser).show(primaryStage);
+        });
         
-        while (qAndAOn) {
-        	
-        	if (firstVisit==true) {
-           displayMenu();
-        	firstVisit=false;}
+        // Manage Trusted Reviewers
+        Button manageTrustedReviewersButton = new Button("Manage Trusted Reviewers");
+        manageTrustedReviewersButton.setOnAction(event -> {
+            System.out.println("Navigating to TrustedReviewersPage...");
+            // Navigate to a new page for managing trusted reviewers
+            new TrustedReviewersPage(currentUser).show(primaryStage);
+        });
+        
+        // feature only for reviewers
+        Button manageReviewsButton = new Button("Manage Reviews");
+        manageReviewsButton.setOnAction(e -> new ReviewManagerPage(currentUser).show(primaryStage));
+        
+        // Role selection and request 
+        Button manageRolesButton = new Button("Manage / Request Role");
+        manageRolesButton.setOnAction(event -> {
+            String userName = currentUser.getUserName().trim();
+            databaseHelper.ensureUserExists(userName, "user");
+            java.util.List<String> userRoles = databaseHelper.getUserRoles(userName);
+            new RoleSelectionPage(databaseHelper, userRoles).show(primaryStage, currentUser);
+        });
 
-            String option = scanner.nextLine();
-	//If the user chooses to ask a question they will enter the question itself along with a further description
-            if (option.equals("1")) {
-                // Asking a question
-                System.out.println("Please enter your question:");
-                String questionText = scanner.nextLine();
+        // Logout
+        Button logoutButton = new Button("Log Out");
+        logoutButton.setOnAction(event -> {
+            System.out.println("Logging out...");
+            new StartCSE360().start(primaryStage);
+        });
+        
+        // Messages Page
+        Button messagesButton = new Button("Private Messages");
+        messagesButton.setOnAction(event -> {
+        	new MessagesPage(currentUser).Show(primaryStage);
+        });
+        
+        Button backadmin = new Button("Back to Admin");
+        backadmin.setOnAction(event -> new AdminHomePage(currentUser).show(primaryStage));
 
-                System.out.println("Please enter a description for your question:");
-                String description = scanner.nextLine();
+        // Determine which reviewer-specific button to display:
+        boolean isReviewer = currentUser.getRole().toLowerCase().contains("reviewer");
 
-                
-               //Makes question with these parameters
-                Question newQuestion = new Question(user.getUserName(), questionText, description, String.valueOf(val));
-                val++;
-
-                // It will be stored to the .txt file
-                Questions.writeQuestion(newQuestion);
-
-                //
-                Platform.runLater(() -> {
-                    layout.getChildren().clear();
-                    layout.getChildren().add(new Label("New question added: " + questionText));
-                });
-	//If they want to view all the questions it will load the.txt file and output it as a Questions Array List
-            } else if (option.equals("2")) {
-                // View all questions
-                if (!preload) {
-                    Questions.loadQuestionsFromFile();
-                    preload = true;
-                }
-                
-                Questions.clear();
-                Questions.loadQuestionsFromFile();
-                // Update the UI with the list of questions
-				
-				  Platform.runLater(() -> { layout.getChildren().clear();
-				  layout.getChildren().add(new Label("Displaying all questions...")); });
-				 
-
-                Questions.displayQuestions(); 
-	//If they want to answer a question they will type in the number of the question they want to answer along with the answer. 
-            } else if (option.equals("3")) {
-				
-				  System.out.println("Please enter the code of the question you wish to answer: "); 
-				  
-				  int qNum= scanner.nextInt(); 
-				  scanner.nextLine();
-				  System.out.println("Please enter the response of your answer: ");
-				  String answerInfo=scanner.nextLine();
-				  Answer newAnswer =  new Answer(qNum, user.getUserName(), answerInfo);
-				 //It will write to the answer file .txt
-				  Answers.writeAnswers(newAnswer); Platform.runLater(() -> {
-				  layout.getChildren().clear(); layout.getChildren().add(new Label("New answer added: " + answerInfo));
-				  
-				
-				  });
-				 
-                
-            }else if (option.equals("x")) {
-                qAndAOn = false;
-                Platform.runLater(() -> layout.getChildren().add(new Label("Exiting Q/A System...")));
-                System.out.println("Exiting Q/A System...");
-            }
-
-            // **Redisplay menu after each operation**
-            displayMenu();
+        VBox buttonsLayout = new VBox(10);
+        buttonsLayout.getChildren().addAll(
+            askQuestionButton,
+            myQuestionsButton,
+            manageRolesButton,
+            manageTrustedReviewersButton,
+            messagesButton,
+            logoutButton,
+            backadmin
+        );
+        if (isReviewer) {
+            buttonsLayout.getChildren().add(manageReviewsButton);
         }
-        scanner.close();
-    }
 
-    private void displayMenu() {
-        System.out.println("\n-----MAIN MENU-----");
-        System.out.println("1) Ask Question");
-        System.out.println("2) View all Questions");
-        System.out.println("3) Answer Questions");
-        System.out.println("p) Return to main menu");
-        System.out.println("x) Exit Q/A System");
-        System.out.print("Select an option: ");
+        layout.getChildren().addAll(welcomeLabel, buttonsLayout);
+        Scene scene = new Scene(layout, 800, 400);
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("User Home Page");
+        primaryStage.show();
     }
 }

@@ -32,12 +32,14 @@ public class PasswordEvaluator {
 	public static boolean foundNumericDigit = false;
 	public static boolean foundSpecialChar = false;
 	public static boolean foundLongEnough = false;
-	public static boolean foundNoOtherChar = true;
+	public static boolean foundOtherChar = false;		// True if any invalid character appears
 	private static String inputLine = "";				// The input line
 	private static char currentChar;					// The current character in the line
 	private static int currentCharNdx;					// The index of the current character
 	private static boolean running;						// The flag that specifies if the FSM is 
 														// running
+	private static int charCounter = 0;					// Tracks total characters processed
+
 
 	/**********
 	 * This private method display the input line and then on a line under it displays an up arrow
@@ -89,7 +91,6 @@ public class PasswordEvaluator {
 		foundNumericDigit = false;			// Reset the Boolean flag
 		foundLongEnough = false;			// Reset the Boolean flag
 		running = true;						// Start the loop
-		foundNoOtherChar=true; //A new boolean flag added to check if a "other" character has been entered
 
 		// The Directed Graph simulation continues until the end of the input is reached or at some 
 		// state the current character does not match any valid transition
@@ -100,63 +101,72 @@ public class PasswordEvaluator {
 			if (currentChar >= 'A' && currentChar <= 'Z') {
 				System.out.println("Upper case letter found");
 				foundUpperCase = true;
+				charCounter++;
 			} else if (currentChar >= 'a' && currentChar <= 'z') {
 				System.out.println("Lower case letter found");
 				foundLowerCase = true;
+				charCounter++;
 			} else if (currentChar >= '0' && currentChar <= '9') {
 				System.out.println("Digit found");
 				foundNumericDigit = true;
-				//changed the special characters according to FSM diagram
-			} else if ("~`!@#$%^&*()_-+{}[]|:,.?/".indexOf(currentChar) >= 0) {
+				charCounter++;
+			} else if ("~`!@#$%^&*()_-+={}[]|\\:;\"'<>,.?/".indexOf(currentChar) >= 0) {
 				System.out.println("Special character found");
 				foundSpecialChar = true;
-				//if "other" character is entered it raises the flag and the password is not valid
-			} else if ("\\;\"'<>".indexOf(currentChar)>=0) {
-				System.out.println("Other character found");
-				foundNoOtherChar=false;
+				charCounter++;
 			} else {
-				passwordIndexofError = currentCharNdx;
-				return "*** Error *** An invalid character has been found!";
-			}
-			if (currentCharNdx >= 7) {
-				System.out.println("At least 8 characters found");
-				foundLongEnough = true;
-			}
-			
-			// Go to the next character if there is one
+				// Semantic action [5] - otherChar
+				System.out.println("Invalid character found");
+				foundOtherChar = true;
+				charCounter++;
+			} 
 			currentCharNdx++;
-			if (currentCharNdx >= inputLine.length())
+			if (currentCharNdx >= inputLine.length()) {
+				// Transition G - no more input
 				running = false;
-			else
-				currentChar = input.charAt(currentCharNdx);
+			}
+			else {
+				// Fetch the next character
+				currentChar = inputLine.charAt(currentCharNdx);
+			}
 			
 			System.out.println();
 		}
 		
+		// Semantic action [6]: if charCounter >= 8, foundLongEnough = true
+		if (charCounter >= 8) {
+			foundLongEnough = true;
+		}
+		
+		
 		String errMessage = "";
 		if (!foundUpperCase)
-			errMessage += "Upper case; ";
+			errMessage += "Need Upper case; ";
 		
 		if (!foundLowerCase)
-			errMessage += "Lower case; ";
+			errMessage += "Need Lower case; ";
 		
 		if (!foundNumericDigit)
-			errMessage += "Numeric digits; ";
+			errMessage += "Need Atleast One Numeric Digit; ";
 			
 		if (!foundSpecialChar)
-			errMessage += "Special character; ";
-			//Made the length requirement more clear
+			errMessage += "Must have atleast 1 Special character; ";
+			
 		if (!foundLongEnough)
-			errMessage += "Long Enough (8 characters); ";
-		//If another character is found send a warning
-		if (!foundNoOtherChar)
-			errMessage += "No other chars permitted";
+			errMessage += "Not Long Enough; ";
 		
-		if (errMessage == "")
+		if (foundOtherChar) {
+			errMessage += "Contains invalid characters; ";
+		}
+		
+		if (errMessage.equals("")) {
+			// The password is valid
 			return "";
-		
-		passwordIndexofError = currentCharNdx;
-		return errMessage + "conditions were not satisfied";
+		} else {
+			// Record where the final issue was encountered (or the end of the input)
+			passwordIndexofError = currentCharNdx;
+			return "*** Error *** " + errMessage + "\n";
+		}
 
 	}
 }

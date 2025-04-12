@@ -107,17 +107,12 @@ public class UserNameRecognizer {
 			case 0: 
 				// State 0 has 1 valid transition that is addressed by an if statement.
 				
-				// The current character is checked against A-Z, a-z.  If any are matched
+				// The current character is checked against A-Z, a-z, 0-9. If any are matched
 				// the FSM goes to state 1
 				
-				// A-Z, a-z -> State 1
-				/*
-				 * The code has been changed here to only allow the first character entered to be A-Z or a-z, 
-				 * the numerical digit part has been removed.
-				 */
+				// A-Z, a-z, 0-9 -> State 1
 				if ((currentChar >= 'A' && currentChar <= 'Z' ) ||		// Check for A-Z
-						(currentChar >= 'a' && currentChar <= 'z' ))	// Check for a-z
-						 {	// Check for 0-9
+						(currentChar >= 'a' && currentChar <= 'z' )) {	// Check for a-z
 					nextState = 1;
 					
 					// Count the character 
@@ -134,9 +129,14 @@ public class UserNameRecognizer {
 				break;
 			
 			case 1: 
-				// State 1 has two valid transitions, 
-				//	1: a A-Z, a-z, 0-9 that transitions back to state 1
-				//  2: a period, dash, or underscore that transitions to state 2 
+				/* 
+				 * State 1 handles all subsequent characters that can be alphanumeric (A-Z, a-z, 0-9)
+				 * or one of the special characters ., -, _ (but not at the end or consecutively).
+				 * 
+				 * Transitions:
+				 *   A-Z, a-z, 0-9 -> State 1
+				 *   ., -, _       -> State 2
+				 */
 
 				
 				// A-Z, a-z, 0-9 -> State 1
@@ -148,14 +148,11 @@ public class UserNameRecognizer {
 					// Count the character
 					userNameSize++;
 				}
-				// . OR - OR _ -> State 2
-				/*
-				 * Code has been changed to allow for also an underscore and dash.
-				 */
-				else if (currentChar == '.' || currentChar == '-'|| currentChar =='_') {							// Check for /
+				// . -> State 2
+				else if (currentChar == '.' || currentChar == '-' || currentChar == '_') {							// Check for /
 					nextState = 2;
 					
-					// Count the . OR - OR _
+					// Count the .
 					userNameSize++;
 				}				
 				// If it is none of those characters, the FSM halts
@@ -169,7 +166,14 @@ public class UserNameRecognizer {
 				break;			
 				
 			case 2: 
-				// State 2 deals with a character after a period, underscore, dash in the name.
+				/*
+				 * State 2 occurs immediately after a ., -, or _.
+				 * The next character must be alphanumeric (A-Z, a-z, 0-9).
+				 * If valid, transition to State 1; otherwise, halt.
+				 * 
+				 * Transitions:
+				 *   A-Z, a-z, 0-9 -> State 1
+				 */
 				
 				// A-Z, a-z, 0-9 -> State 1
 				if ((currentChar >= 'A' && currentChar <= 'Z' ) ||		// Check for A-Z
@@ -228,7 +232,7 @@ public class UserNameRecognizer {
 		switch (state) {
 		case 0:
 			// State 0 is not a final state, so we can return a very specific error message
-			userNameRecognizerErrorMessage += "A UserName must start with A-Z or a-z.\n";
+			userNameRecognizerErrorMessage += "Must start with A-Z or a-z.\n";
 			return userNameRecognizerErrorMessage;
 
 		case 1:
@@ -237,19 +241,19 @@ public class UserNameRecognizer {
 
 			if (userNameSize < 4) {
 				// UserName is too small
-				userNameRecognizerErrorMessage += "A UserName must have at least 4 characters.\n";
+				userNameRecognizerErrorMessage += "at least 4 characters.\n";
 				return userNameRecognizerErrorMessage;
 			}
 			else if (userNameSize > 16) {
 				// UserName is too long
 				userNameRecognizerErrorMessage += 
-					"A UserName must have no more than 16 character.\n";
+					"No more than 16 character.\n";
 				return userNameRecognizerErrorMessage;
 			}
 			else if (currentCharNdx < input.length()) {
 				// There are characters remaining in the input, so the input is not valid
 				userNameRecognizerErrorMessage += 
-					"A UserName character may only contain the characters A-Z, a-z, 0-9.\n";
+					"Only Valid characters A-Z, a-z, 0-9.\n";
 				return userNameRecognizerErrorMessage;
 			}
 			else {
@@ -262,7 +266,7 @@ public class UserNameRecognizer {
 		case 2:
 			// State 2 is not a final state, so we can return a very specific error message
 			userNameRecognizerErrorMessage +=
-				"A UserName character after a period, minus sign, or underscore must be A-Z, a-z, 0-9.\n";
+				"after period must be A-Z, a-z, 0-9.\n";
 			return userNameRecognizerErrorMessage;
 			
 		default:

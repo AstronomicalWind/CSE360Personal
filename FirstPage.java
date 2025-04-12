@@ -15,6 +15,7 @@ public class FirstPage {
 	
 	// Reference to the DatabaseHelper for database interactions
 	private final DatabaseHelper databaseHelper;
+	
 	public FirstPage(DatabaseHelper databaseHelper) {
         this.databaseHelper = databaseHelper;
     }
@@ -30,17 +31,22 @@ public class FirstPage {
 	    layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
 	    Label userLabel = new Label("Hello..You are the first person here. \nPlease select continue to setup administrator access");
 	    userLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-	    
-	    Button continueButton = new Button("Continue");
+
 	    // Button to navigate to the SetupAdmin page
-	    
+	    Button continueButton = new Button("Continue");
 	    continueButton.setOnAction(a -> {
+	        System.out.println("Test: Continue Button Clicked - Navigating to Admin Setup Page");
 	        new AdminSetupPage(databaseHelper).show(primaryStage);
-	        
 	    });
+
+	    // Automated Test: Verify Button Text
+	    System.out.println("Test: Verify Continue Button Text - Expected: 'Continue', Actual: " + continueButton.getText());
 
 	    layout.getChildren().addAll(userLabel, continueButton);
 	    Scene firstPageScene = new Scene(layout, 800, 400);
+
+	    // Automated Test: Scene Loaded
+	    System.out.println("Test: FirstPage Loaded - Scene Title: " + primaryStage.getTitle());
 
 	    // Set the scene to primary stage
 	    primaryStage.setScene(firstPageScene);

@@ -1,49 +1,52 @@
 package application;
-import java.util.List;
-import java.util.ArrayList;
-public class Question {
 
-	
-	public String question;
-	public String description;
-	public String id;
-	public String number;
-	public boolean resolved=false;
-	public boolean answered=false;
-	List<Answer> answerList = new ArrayList<>();
-	//these are attributes of the queston class
-	
-	public Question(String questionId, String questionText, String description, String numb) {
-		// TODO Auto-generated constructor stub
-		//This constructor was auto made in eclipse and allows us to quickly fill in the values from the main file
-		 this.id = questionId;
-	        this.question = questionText;
-	        this.description = description;
-	        this.answered = false;
-	        this.resolved=false;
-	        this.number=numb;
-	        
-	}
-	
-	public void addAnswer(Answer answer) {
-        answerList.add(answer);
-        answered = true; // Mark the question as answered
+public class Question {
+    private int id;
+    private String title;
+    private String content;
+    private String owner; // User who owns the question
+    private int ownerPermID; // permID of the owner
+    private Integer parentQuestionId;
+
+    public Question(int id, String title, String content, String owner) {
+        this.id = id;
+        this.title = title;
+        this.content = content;
+        this.owner = owner;
+        this.ownerPermID = 0; // default value
+        this.parentQuestionId = null; // No parent for the initial question
     }
 
+    public Question(int id, String title, String content, String owner, Integer parentQuestionId) {
+        this.id = id;
+        this.title = title;
+        this.content = content;
+        this.owner = owner;
+        this.ownerPermID = 0; // default value
+        this.parentQuestionId = parentQuestionId;
+    }
+    private boolean isFlagged = false;
 
-	//OLD CODE IGNORE - KEPT FOR STORAGE PURPOSES
-	/*
-	 * public void displayAnswers() { if (answerList.isEmpty()) {
-	 * System.out.println("No answers");
-	 * 
-	 * } else { for (int i = 0; i < answerList.size(); i++) {
-	 * System.out.println(answerList.get(i).id + ": " + answerList.get(i).answer);
-	 * System.out.println("----------------------"); } }
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * }
-	 */
-}
+    public boolean isFlagged() {
+        return isFlagged;
+    }
+
+    public void setFlagged(boolean flagged) {
+        this.isFlagged = flagged;
+    }
+    // Getter and Setter methods
+    public int getId() { return id; }
+    public String getTitle() { return title; }
+    public String getContent() { return content; }
+    public String getOwner() { return owner; }
+    public int getOwnerPermID() { return ownerPermID; }
+    public Integer getParentQuestionId() { return parentQuestionId; }
+
+    public void setTitle(String title) { this.title = title; }
+    public void setContent(String content) { this.content = content; }
+
+    // ✅ Added setter for ownerPermID
+    public void setOwnerPermID(int ownerPermID) {
+        this.ownerPermID = ownerPermID;
+    }
+} 
