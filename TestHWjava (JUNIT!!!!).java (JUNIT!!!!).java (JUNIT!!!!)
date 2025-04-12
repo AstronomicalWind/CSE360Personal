@@ -1,0 +1,98 @@
+package application;
+
+import databasePart1.DatabaseHelper;
+import javafx.stage.Stage;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import java.sql.SQLException;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class TestProj3 {
+
+    private DatabaseHelper databaseHelper;
+    private User testUser;
+
+    @BeforeEach
+    public void setUp() throws SQLException {
+        databaseHelper = DatabaseHelper.getInstance();
+        testUser = new User("testUser", "password", "user");
+
+        databaseHelper.connectToDatabase();
+        
+    }
+
+    @Test
+    public boolean testRegisterUser() throws SQLException {
+        databaseHelper.register(testUser);
+        boolean userExists = databaseHelper.doesUserExist(testUser.getUserName());
+        assertTrue(userExists, "User should be registered successfully.");
+        return true;
+    }
+
+    @Test
+    public boolean testLoginUser() throws SQLException {
+        databaseHelper.register(testUser);
+        boolean loginSuccess = databaseHelper.login(testUser);
+        assertTrue(loginSuccess, "User should be able to log in.");
+        return true;
+    }
+
+    @Test
+    public boolean testUserRoles() throws SQLException {
+        databaseHelper.register(testUser);
+        databaseHelper.addRoleToUser(testUser.getUserName(), "admin");
+        List<String> roles = databaseHelper.getUserRoles(testUser.getUserName());
+        assertTrue(roles.contains("admin"), "User should have the admin role.");
+        return true;
+    }
+
+    @Test
+    public boolean testAddRoleToExistingUser() throws SQLException {
+        databaseHelper.register(testUser);
+        databaseHelper.addRoleToUser(testUser.getUserName(), "admin");
+        List<String> roles = databaseHelper.getUserRoles(testUser.getUserName());
+        assertTrue(roles.contains("admin"), "Role 'admin' should be added to the user.");
+        return true;
+    }
+
+    @Test
+    public boolean testRequestRole() throws SQLException {
+        databaseHelper.register(testUser);
+        boolean requestSent = databaseHelper.sendRoleRequest(testUser.getUserName(), "admin");
+        assertTrue(requestSent, "Role request should be sent successfully.");
+        return true;
+    }
+
+    @Test
+    public void testRoleSelectionPage() {
+        List<String> roles = List.of("user", "admin", "reviewer");
+        RoleSelectionPage roleSelectionPage = new RoleSelectionPage(databaseHelper, roles);
+        User selectedUser = new User("testUser", "password", "admin");
+        selectedUser.setRole("admin");
+        assertEquals("admin", selectedUser.getRole(), "User's role should be set to admin.");
+    }
+
+    @Test
+    public void testInvitationCodeGeneration() {
+        String code = databaseHelper.generateInvitationCode();
+        assertNotNull(code, "Generated invitation code should not be null.");
+        assertEquals(4, code.length(), "Invitation code should be 4 characters long.");
+    }
+
+    @Test
+    public void testValidateInvitationCode() {
+        String code = databaseHelper.generateInvitationCode();
+        boolean isValid = databaseHelper.validateInvitationCode(code);
+        assertTrue(isValid, "Invitation code should be valid.");
+        boolean isValidAgain = databaseHelper.validateInvitationCode(code);
+        assertFalse(isValidAgain, "Invitation code should not be valid after being used.");
+    }
+
+    @Test
+    public void testBackButtonFromRoleSelectionPage() {
+        RoleSelectionPage roleSelectionPage = new RoleSelectionPage(databaseHelper, List.of("admin", "user"));
+        assertDoesNotThrow(() -> roleSelectionPage.show(new Stage(), testUser), "Back button should not throw an error.");
+    }
+}
